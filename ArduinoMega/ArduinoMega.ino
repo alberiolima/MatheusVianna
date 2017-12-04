@@ -1,11 +1,11 @@
 #include "cabec.h"
 #include <Servo.h>
-/*---------------------------------------------ServoMotor-------------------------------------------------*/
-Servo motorportao;
 
+Servo motorportao;
 ambiente meusAmbientes[qAmbientes];
 
-/*-----------------------------------------------SETUP----------------------------------------------------*/
+unsigned long tempoLDR = 0;
+
 void setup() {  
   
   Serial.begin(9600);  //Taxa de comunicaço em Bounds
@@ -22,6 +22,7 @@ void setup() {
   meusAmbientes[ambArea].porta     = 52;
 
   //Definir portas como saida
+  pinMode( portaLDR, INPUT );
   for ( byte j = 0; j < qAmbientes;j ++) {
     meusAmbientes[j].ligado = true;
     pinMode( meusAmbientes[j].porta, OUTPUT ); 
@@ -42,8 +43,14 @@ void setup() {
   meusAmbientes[ambPortaob].comando = 'Y';
 }
 
-/*---------------------------------------------LOOP-------------------------------------------------------*/
 void loop(){
+  
+  //Leitura do LDR
+  if ( millis() > tempoLDR ) {
+    tempoLDR = millis() + tempoLeituraLDR;
+    digitalWrite( portaSaidaLDR, analogRead(portaLDR) > 900?HIGH:LOW );  
+  }
+  
   if ( Serial.available() > 0 ) {
     byte bluetooth = Serial.read();  
     

@@ -16,3 +16,8 @@ struct ambiente  {
   byte porta = 0;
   byte comando = 0;
 };
+
+#define tempoLeituraLDR 333
+#define portaLDR A0
+#define portaSaidaLDR 4
+

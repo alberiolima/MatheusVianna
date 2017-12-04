@@ -73,8 +73,8 @@ void loop(){
         digitalWrite( meusAmbientes[j].porta, LOW );       
       }      
     } else if (bluetooth == meusAmbientes[ambPortaob].comando ) { //servo (portão)
-      if ( meusAmbientes[ambPortaob].ligado ) {
-        meusAmbientes[ambPortaob].ligado = !(meusAmbientes[ambPortaob].ligado);
+      meusAmbientes[ambPortaob].ligado = !(meusAmbientes[ambPortaob].ligado);
+      if ( meusAmbientes[ambPortaob].ligado ) {        
         for(byte i = 10; i <= 100; i++){
           motorportao.write(i);
           delay(50);

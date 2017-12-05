@@ -6,7 +6,10 @@ ambiente meusAmbientes[qAmbientes];
 
 unsigned long tempoLDR = 0;
 unsigned long tempoPIR = 0;
+unsigned long tempoLASER = 0;
 boolean alternarBuzzer = true;
+boolean alarmLASER = false;
+int valorLASER_OLD = 1023;
 
 void setup() {  
   
@@ -26,6 +29,8 @@ void setup() {
   //Definir portas como saida
   pinMode( pinSensorPIR, INPUT );
   pinMode( portaLDR, INPUT );
+  pinMode( pinLDR_LASER, INPUT );
+  pinMode( pinLASER, OUTPUT);
   for ( byte j = 0; j < qAmbientes;j ++) {
     meusAmbientes[j].ligado = true;
     pinMode( meusAmbientes[j].porta, OUTPUT ); 
@@ -47,7 +52,7 @@ void setup() {
 }
 
 void loop(){
-  
+
   //Leitura do LDR
   if ( millis() > tempoLDR ) {
     tempoLDR = millis() + tempoLeituraLDR;
@@ -57,10 +62,23 @@ void loop(){
   //Leitura do PIR
   if ( millis() > tempoPIR ) {
     tempoPIR = millis() + tempoLeituraPIR;
-    if( digitalRead( pinSensorPIR ) == HIGH ) {
+    
+    if ((digitalRead( pinSensorPIR ) == HIGH )||(alarmLASER)) { //LASER usa o mesmo alarme do PIR, pelo tempo do bip de tempoLeituraPIR
       tone( pinBuzzer, alternarBuzzer?1440:1880, tempoLeituraPIR );
       alternarBuzzer = !(alternarBuzzer);
     }
+    
+  }
+
+  //LASER
+  if ( millis() > tempoLASER ) {
+    tempoLASER = millis() + tempoLeituraLASER;
+    digitalWrite( pinLASER, HIGH );
+    int valorLASER = analogRead( pinLDR_LASER );    
+    digitalWrite(pinLASER, LOW );
+
+    alarmLASER = ( valorLASER - 100 > valorLASER_OLD || valorLASER_OLD + 100 < valorLASER || valorLASER_OLD > 200 || valorLASER > 200 );
+    valorLASER_OLD = valorLASER;
   }
   
   if ( Serial.available() > 0 ) {

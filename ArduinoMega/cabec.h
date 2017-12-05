@@ -25,3 +25,7 @@ struct ambiente  {
 #define tempoLeituraPIR 200
 
 #define pinBuzzer 3
+
+#define pinLASER  7
+#define tempoLeituraLASER 50
+#define pinLDR_LASER A1

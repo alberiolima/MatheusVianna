@@ -5,6 +5,8 @@ Servo motorportao;
 ambiente meusAmbientes[qAmbientes];
 
 unsigned long tempoLDR = 0;
+unsigned long tempoPIR = 0;
+boolean alternarBuzzer = true;
 
 void setup() {  
   
@@ -22,6 +24,7 @@ void setup() {
   meusAmbientes[ambArea].porta     = 52;
 
   //Definir portas como saida
+  pinMode( pinSensorPIR, INPUT );
   pinMode( portaLDR, INPUT );
   for ( byte j = 0; j < qAmbientes;j ++) {
     meusAmbientes[j].ligado = true;
@@ -49,6 +52,15 @@ void loop(){
   if ( millis() > tempoLDR ) {
     tempoLDR = millis() + tempoLeituraLDR;
     digitalWrite( portaSaidaLDR, analogRead(portaLDR) > 900?HIGH:LOW );  
+  } 
+
+  //Leitura do PIR
+  if ( millis() > tempoPIR ) {
+    tempoPIR = millis() + tempoLeituraPIR;
+    if( digitalRead( pinSensorPIR ) == HIGH ) {
+      tone( pinBuzzer, alternarBuzzer?1440:1880, tempoLeituraPIR );
+      alternarBuzzer = !(alternarBuzzer);
+    }
   }
   
   if ( Serial.available() > 0 ) {

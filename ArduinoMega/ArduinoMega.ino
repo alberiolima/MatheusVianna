@@ -1,15 +1,22 @@
 #include "cabec.h"
 #include <Servo.h>
+#include <Ultrasonic.h>
 
+Ultrasonic ultrassom( pinUS_TRIG, pinUS_ECHO );//trig(2) e o echo(3)
 Servo motorportao;
 ambiente meusAmbientes[qAmbientes];
 
 unsigned long tempoLDR = 0;
 unsigned long tempoPIR = 0;
 unsigned long tempoLASER = 0;
+unsigned long tempoUS = 0;
 boolean alternarBuzzer = true;
 boolean alarmLASER = false;
 int valorLASER_OLD = 1023;
+int distanciasUS[4] = { 0,0,0,0 };
+boolean alarmeUSAtivo = false;
+int frequencia = 150;
+char sentido = 1;
 
 void setup() {  
   
@@ -31,6 +38,7 @@ void setup() {
   pinMode( portaLDR, INPUT );
   pinMode( pinLDR_LASER, INPUT );
   pinMode( pinLASER, OUTPUT);
+
   for ( byte j = 0; j < qAmbientes;j ++) {
     meusAmbientes[j].ligado = true;
     pinMode( meusAmbientes[j].porta, OUTPUT ); 
@@ -53,14 +61,22 @@ void setup() {
 
 void loop(){
 
-  //Leitura do LDR
-  if ( millis() > tempoLDR ) {
+  if ( alarmeUSAtivo ) {
+    tone( pinBuzzer, frequencia += sentido, 10 ); 
+    if( ( frequencia > 1800 )|| ( frequencia < 150)){
+      sentido *= -1;
+    }
+    delay(1); //não é necessário, porém vou deixar para não confundir...
+  }
+  
+  if ( millis() > tempoLDR ) { 
+    
+    //Leitura do LDR
     tempoLDR = millis() + tempoLeituraLDR;
     digitalWrite( portaSaidaLDR, analogRead(portaLDR) > 900?HIGH:LOW );  
-  } 
-
-  //Leitura do PIR
-  if ( millis() > tempoPIR ) {
+  } else if ( millis() > tempoPIR ) { 
+    
+    //Leitura do PIR
     tempoPIR = millis() + tempoLeituraPIR;
     
     if ((digitalRead( pinSensorPIR ) == HIGH )||(alarmLASER)) { //LASER usa o mesmo alarme do PIR, pelo tempo do bip de tempoLeituraPIR
@@ -68,10 +84,9 @@ void loop(){
       alternarBuzzer = !(alternarBuzzer);
     }
     
-  }
-
-  //LASER
-  if ( millis() > tempoLASER ) {
+  } else if ( millis() > tempoLASER ) { 
+    
+    //LASER
     tempoLASER = millis() + tempoLeituraLASER;
     digitalWrite( pinLASER, HIGH );
     int valorLASER = analogRead( pinLDR_LASER );    
@@ -79,6 +94,20 @@ void loop(){
 
     alarmLASER = ( valorLASER - 100 > valorLASER_OLD || valorLASER_OLD + 100 < valorLASER || valorLASER_OLD > 200 || valorLASER > 200 );
     valorLASER_OLD = valorLASER;
+  } else if ( millis() > tempoUS ) {
+    
+    //Ultrasom (leitura)
+    tempoUS = millis() + tempoLeituraUS;
+    int somaDistancias = distanciasUS[0];
+    for ( byte j = 1;j < 4;j++ ) {
+      distanciasUS[j-1] = distanciasUS[j];
+      somaDistancias += distanciasUS[j];
+    }
+    distanciasUS[3] = ultrassom.Ranging(CM);
+    somaDistancias + distanciasUS[3];
+
+    int mediaDistancias = ( somaDistancias / 5 ); //calcula a média das ultimas 5 leituras
+    alarmeUSAtivo =  ( mediaDistancias > 7 && mediaDistancias <= 32 );
   }
   
   if ( Serial.available() > 0 ) {

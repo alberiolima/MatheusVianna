@@ -29,3 +29,7 @@ struct ambiente  {
 #define pinLASER  7
 #define tempoLeituraLASER 50
 #define pinLDR_LASER A1
+
+#define tempoLeituraUS 30
+#define pinUS_ECHO   3
+#define pinUS_TRIG   2
